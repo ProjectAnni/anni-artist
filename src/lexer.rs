@@ -41,9 +41,11 @@ impl<'input> Tokens<'input> {
             let ch = chars[i];
             match state {
                 LexerState::Normal => {
-                    if ch == '\\' {
+                    if ch == '\\' || (ch == '、' && chars.len() > i + 1 && chars[i + 1] == '、') {
                         state = LexerState::EscapeStart;
-                        image_owned = Some(input[image_start..image_start + image_size].to_string());
+                        if let None = image_owned {
+                            image_owned = Some(input[image_start..image_start + image_size].to_string());
+                        }
                         image_size += ch.len_utf8();
                     } else if ch == '（' || ch == '）' || ch == '、' {
                         // push previous ArtistName if exists
@@ -169,8 +171,8 @@ mod tests {
 
     #[test]
     fn lexer_input_normal() {
-        let result = Tokens::parse("Petit Rabbit's（ココア（佐倉綾音）、チノ（水瀬いのり）、リゼ（種田梨沙）、千夜（佐藤聡美）、シャロ（内田真礼））、Append");
-        assert_eq!(result.inner.len(), 29);
+        let result = Tokens::parse("Petit Rabbit's（ココア（佐倉綾音）、チノ（水瀬いのり）、リゼ（種田梨沙）、千夜（佐藤聡美）、シャロ（内田真礼））、Append、、、、、");
+        assert_eq!(result.inner.len(), 30);
         assert_eq!(result.inner[0].image, "Petit Rabbit's");
         assert_eq!(result.inner[2].image, "ココア");
         assert_eq!(result.inner[4].image, "佐倉綾音");
@@ -182,7 +184,8 @@ mod tests {
         assert_eq!(result.inner[19].image, "佐藤聡美");
         assert_eq!(result.inner[22].image, "シャロ");
         assert_eq!(result.inner[24].image, "内田真礼");
-        assert_eq!(result.inner[28].image, "Append");
+        assert_eq!(result.inner[28].image, "Append、、");
+        assert_eq!(result.inner[29].image, "、");
     }
 
     #[test]
