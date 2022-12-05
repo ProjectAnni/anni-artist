@@ -1,6 +1,11 @@
 [package]
 name = "anni-artist"
 version = "0.1.0"
+authors = ["Yesterday17 <mmf@mmf.moe>"]
 edition = "2021"
+
+description = "Artist parser for Project Anni."
+repository = "https://github.com/ProjectAnni/anni-artist"
+license = "Apache-2.0"
 
 [dependencies]
