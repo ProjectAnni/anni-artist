@@ -1,8 +1,8 @@
+use crate::lexer::{Token, Tokens};
 use alloc::borrow::Cow;
 use alloc::collections::VecDeque;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use crate::lexer::{Token, Tokens};
 
 pub struct ArtistList<'input> {
     pub artists: Vec<Artist<'input>>,
@@ -20,9 +20,13 @@ impl<'input> ArtistList<'input> {
 
     // ArtistList ::= ArtistName ('（' ArtistList '）')? ('、' ArtistList)?
     fn parse_inner(tokens: &mut VecDeque<Token<'input>>) -> Result<ArtistList<'input>, String> {
-        let mut result = ArtistList { artists: Vec::new() };
+        let mut result = ArtistList {
+            artists: Vec::new(),
+        };
 
-        let artist_name = tokens.pop_front().ok_or("Insufficient tokens".to_string())?;
+        let artist_name = tokens
+            .pop_front()
+            .ok_or("Insufficient tokens".to_string())?;
         if !artist_name.is_artist_name() {
             return Err("Expected ArtistName".to_string());
         }
@@ -30,17 +34,25 @@ impl<'input> ArtistList<'input> {
         if let Some(mut next) = tokens.pop_front() {
             if next.is_artist_name() || next.is_right_bracket() {
                 // no artist list
-                result.artists.push(Artist { name: artist_name.into_inner(), references: None });
+                result.artists.push(Artist {
+                    name: artist_name.into_inner(),
+                    references: None,
+                });
                 // push the next token back
                 tokens.push_front(next);
             } else {
                 if next.is_left_bracket() {
                     // nested artist list
                     let artist_list = ArtistList::parse_inner(tokens)?;
-                    result.artists.push(Artist { name: artist_name.into_inner(), references: Some(artist_list) });
+                    result.artists.push(Artist {
+                        name: artist_name.into_inner(),
+                        references: Some(artist_list),
+                    });
 
                     // RBracket
-                    let rbracket = tokens.pop_front().expect("Insufficient token");
+                    let rbracket = tokens
+                        .pop_front()
+                        .ok_or_else(|| "Insufficient token, expected RBracket")?;
                     if !rbracket.is_right_bracket() {
                         return Err("Expected Right Bracket".to_string());
                     }
@@ -61,7 +73,10 @@ impl<'input> ArtistList<'input> {
             }
         } else {
             // token stream end
-            result.artists.push(Artist { name: artist_name.into_inner(), references: None });
+            result.artists.push(Artist {
+                name: artist_name.into_inner(),
+                references: None,
+            });
         }
 
         Ok(result)

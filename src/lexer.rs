@@ -44,7 +44,8 @@ impl<'input> Tokens<'input> {
                     if ch == '\\' || (ch == '、' && chars.len() > i + 1 && chars[i + 1] == '、') {
                         state = LexerState::EscapeStart;
                         if let None = image_owned {
-                            image_owned = Some(input[image_start..image_start + image_size].to_string());
+                            image_owned =
+                                Some(input[image_start..image_start + image_size].to_string());
                         }
                         image_size += ch.len_utf8();
                     } else if ch == '（' || ch == '）' || ch == '、' {
@@ -68,7 +69,8 @@ impl<'input> Tokens<'input> {
                             TokenType::LBracket
                         } else if ch == '）' {
                             TokenType::RBracket
-                        } else /* ch == '、' */ {
+                        } else {
+                            // ch == '、'
                             TokenType::Comma
                         };
                         tokens.push_back(Token {
@@ -109,9 +111,7 @@ impl<'input> Tokens<'input> {
             });
         }
 
-        Self {
-            inner: tokens,
-        }
+        Self { inner: tokens }
     }
 
     pub(crate) fn into_inner(self) -> VecDeque<Token<'input>> {
